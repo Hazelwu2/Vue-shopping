@@ -9,3 +9,21 @@
       </ul>
   </nav>
 </template>
+<script>
+export default {
+  data() {
+    return {
+
+    }
+  },
+  methods: {
+    signout() {
+      const api = `${process.env.APIPATH}/logout`;
+      this.$http.post(api)
+        .then(response => {
+          response.data.success ? this.$router.push('/login') : false
+        })
+    }
+  }
+}
+</script>
