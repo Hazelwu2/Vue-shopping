@@ -36,13 +36,13 @@ div
             .col-sm-4
               .form-group
                 label(for='image') 輸入圖片網址
-                input#image.form-control(type='text', placeholder='請輸入圖片連結', v-model='tempProduct.image')
+                input#image.form-control(type='text', placeholder='請輸入圖片連結', v-model='tempProduct.imageUrl')
               .form-group
                 label(for='customFile')
                   | 或 上傳圖片
                   i.fas.fa-spinner.fa-spin
-                input#customFile.form-control(type='file', ref='files')
-              img.img-fluid(img='https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=828346ed697837ce808cae68d3ddc3cf&auto=format&fit=crop&w=1350&q=80', alt='')
+                input#customFile.form-control(type='file', ref='files', @change='uploadFile')
+              img.img-fluid(img='https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=828346ed697837ce808cae68d3ddc3cf&auto=format&fit=crop&w=1350&q=80', alt='', :src="tempProduct.imageUrl")
             .col-sm-8
               .form-group
                 label(for='title') 標題
@@ -167,8 +167,29 @@ export default {
           vm.getProducts();
         } else {
           $('#delProductModal').modal('hide');
-          console.log('刪除失敗！')
+          // console.log('刪除失敗！')
           vm.getProducts();
+        }
+      })
+    },
+    uploadFile() {
+      console.log(this);
+      const uploadedFile = this.$refs.files.files[0];
+      const vm = this;
+      const formData = new FormData();
+      formData.append('file-to-upload', uploadedFile);
+      const url = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/upload`;
+      this.$http.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then((response)=> {
+        console.log(response.data);
+        if (response.data.success) {
+          // vm.tempProduct.imageUrl = response.data.imageUrl;
+          // console.log(vm.tempProduct.imageUrl);
+          // 強制寫入
+          vm.$set(vm.tempProduct, 'imageUrl', response.data.imageUrl);
         }
       })
     }
