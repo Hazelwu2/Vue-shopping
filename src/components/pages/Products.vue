@@ -1,5 +1,6 @@
 <template lang='pug'>
 div
+  loading(:active.sync="isLoading")
   .text-right.mt-4
     button.btn.btn-outline-primary(@click='openModal(true)') 建立新的產品
   table.table.mt-4
@@ -40,7 +41,7 @@ div
               .form-group
                 label(for='customFile')
                   | 或 上傳圖片
-                  i.fas.fa-spinner.fa-spin
+                  i.fas.fa-spinner.fa-spin(v-if='status.fileUploading')
                 input#customFile.form-control(type='file', ref='files', @change='uploadFile')
               img.img-fluid(img='https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=828346ed697837ce808cae68d3ddc3cf&auto=format&fit=crop&w=1350&q=80', alt='', :src="tempProduct.imageUrl")
             .col-sm-8
@@ -105,15 +106,21 @@ export default {
       tempProduct: {},
       isNew: false,
       tempDelProduct: {},
+      isLoading: false,
+      status: {
+        fileUploading: false,
+      }
     };
   },
   methods: {
     getProducts() {
       const vm = this;
       const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/products`;
+      vm.isLoading = true;
       this.$http.get(api).then(response => {
         console.log(response.data);
         this.products = response.data.products;
+        vm.isLoading = false;
       });
     },
     openModal(isNew, item) {
@@ -167,18 +174,19 @@ export default {
           vm.getProducts();
         } else {
           $('#delProductModal').modal('hide');
-          // console.log('刪除失敗！')
+          console.log('刪除失敗！')
           vm.getProducts();
         }
       })
     },
     uploadFile() {
-      console.log(this);
+      // console.log(this);
       const uploadedFile = this.$refs.files.files[0];
       const vm = this;
       const formData = new FormData();
       formData.append('file-to-upload', uploadedFile);
       const url = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/upload`;
+      vm.status.fileUploading = true;
       this.$http.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -190,6 +198,7 @@ export default {
           // console.log(vm.tempProduct.imageUrl);
           // 強制寫入
           vm.$set(vm.tempProduct, 'imageUrl', response.data.imageUrl);
+          vm.status.fileUploading = false;
         }
       })
     }
