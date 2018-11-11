@@ -199,6 +199,8 @@ export default {
           // 強制寫入
           vm.$set(vm.tempProduct, 'imageUrl', response.data.imageUrl);
           vm.status.fileUploading = false;
+        } else {
+          this.$bus.$emit('messsage:push', response.data.message, 'danger');
         }
       })
     }
@@ -206,6 +208,5 @@ export default {
   created() {
     this.getProducts();
   },
-
 };
 </script>

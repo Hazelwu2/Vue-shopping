@@ -13,6 +13,7 @@ import 'bootstrap';
 
 import App from './App'
 import router from './router'
+import './bus';
 import Axios from 'axios';
 
 axios.defaults.withCredentials = true;
