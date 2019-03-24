@@ -98,115 +98,137 @@ div
 </template>
 
 <script>
-import $ from 'jquery';
+import $ from "jquery";
 export default {
-  data() {
-    return {
-      products: [],
-      tempProduct: {},
-      isNew: false,
-      tempDelProduct: {},
-      isLoading: false,
-      status: {
-        fileUploading: false,
-      }
-    };
-  },
-  methods: {
-    getProducts() {
-      const vm = this;
-      const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/products`;
-      vm.isLoading = true;
-      this.$http.get(api).then(response => {
-        console.log(response.data);
-        this.products = response.data.products;
-        vm.isLoading = false;
-      });
+    data() {
+        return {
+            products: [],
+            tempProduct: {},
+            isNew: false,
+            tempDelProduct: {},
+            isLoading: false,
+            status: {
+                fileUploading: false
+            }
+        };
     },
-    openModal(isNew, item) {
-      if (isNew) {
-        this.tempProduct = {};
-        this.isNew = true;
-      } else {
-        this.tempProduct = Object.assign({}, item);
-        this.isNew = false;
-      }
-      $('#productModal').modal('show');
-    },
-    updateProduct() {
-      const vm = this;
-      let api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/product`;
-      let httpMethod = 'post';
+    methods: {
+        getProducts() {
+            const vm = this;
+            const api = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/products`;
+            vm.isLoading = true;
+            this.$http.get(api).then(response => {
+                console.log(response.data);
+                this.products = response.data.products;
+                vm.isLoading = false;
+            });
+        },
+        openModal(isNew, item) {
+            if (isNew) {
+                this.tempProduct = {};
+                this.isNew = true;
+            } else {
+                this.tempProduct = Object.assign({}, item);
+                this.isNew = false;
+            }
+            $("#productModal").modal("show");
+        },
+        updateProduct() {
+            const vm = this;
+            let api = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/admin/product`;
+            let httpMethod = "post";
 
-      if (!vm.isNew) {
-        console.log(vm.isNew)
-        api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/product/${vm.tempProduct.id}`;
-        console.log(api)
-        httpMethod = 'put';
-      }
+            if (!vm.isNew) {
+                console.log(vm.isNew);
+                api = `${process.env.APIPATH}/api/${
+                    process.env.CUSTOMPATH
+                }/admin/product/${vm.tempProduct.id}`;
+                console.log(api);
+                httpMethod = "put";
+            }
 
-      this.$http[httpMethod](api, {data: vm.tempProduct}).then((response) => {
-        if (response.data.success) {
-          $('#productModal').modal('hide');
-          vm.getProducts();
-        } else {
-          $('#productModal').modal('hide');
-          vm.getProducts()
-          console.log('上傳失敗！')
+            this.$http[httpMethod](api, { data: vm.tempProduct }).then(
+                response => {
+                    if (response.data.success) {
+                        $("#productModal").modal("hide");
+                        vm.getProducts();
+                    } else {
+                        $("#productModal").modal("hide");
+                        vm.getProducts();
+                        console.log("上傳失敗！");
+                    }
+                    // vm.products = response.data.products;
+                }
+            );
+        },
+        hideModal() {
+            $("#delProductModal").modal("hide");
+        },
+        showModal(item) {
+            $("#delProductModal").modal("show");
+            this.tempDelProduct = Object.assign({}, item);
+        },
+        delProduct() {
+            const vm = this;
+            const api = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/admin/product/${vm.tempDelProduct.id}`;
+            this.$http.delete(api).then(response => {
+                if (response.data.success) {
+                    $("#delProductModal").modal("hide");
+                    console.log("刪除成功！");
+                    vm.getProducts();
+                } else {
+                    $("#delProductModal").modal("hide");
+                    console.log("刪除失敗！");
+                    vm.getProducts();
+                }
+            });
+        },
+        uploadFile() {
+            // console.log(this);
+            const uploadedFile = this.$refs.files.files[0];
+            const vm = this;
+            const formData = new FormData();
+            formData.append("file-to-upload", uploadedFile);
+            const url = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/admin/upload`;
+            vm.status.fileUploading = true;
+            this.$http
+                .post(url, formData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    }
+                })
+                .then(response => {
+                    console.log(response.data);
+                    if (response.data.success) {
+                        // vm.tempProduct.imageUrl = response.data.imageUrl;
+                        // console.log(vm.tempProduct.imageUrl);
+                        // 強制寫入
+                        vm.$set(
+                            vm.tempProduct,
+                            "imageUrl",
+                            response.data.imageUrl
+                        );
+                        vm.status.fileUploading = false;
+                    } else {
+                        this.$bus.$emit(
+                            "messsage:push",
+                            response.data.message,
+                            "danger"
+                        );
+                    }
+                });
         }
-        // vm.products = response.data.products;
-      });
     },
-    hideModal() {
-      $('#delProductModal').modal('hide');
-    },
-    showModal(item){
-      $('#delProductModal').modal('show');
-      this.tempDelProduct = Object.assign({}, item);
-    },
-    delProduct() {
-      const vm = this;
-      const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/product/${vm.tempDelProduct.id}`;
-      this.$http.delete(api).then((response)=> {
-        if (response.data.success) {
-          $('#delProductModal').modal('hide');
-          console.log('刪除成功！')
-          vm.getProducts();
-        } else {
-          $('#delProductModal').modal('hide');
-          console.log('刪除失敗！')
-          vm.getProducts();
-        }
-      })
-    },
-    uploadFile() {
-      // console.log(this);
-      const uploadedFile = this.$refs.files.files[0];
-      const vm = this;
-      const formData = new FormData();
-      formData.append('file-to-upload', uploadedFile);
-      const url = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/upload`;
-      vm.status.fileUploading = true;
-      this.$http.post(url, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }).then((response)=> {
-        console.log(response.data);
-        if (response.data.success) {
-          // vm.tempProduct.imageUrl = response.data.imageUrl;
-          // console.log(vm.tempProduct.imageUrl);
-          // 強制寫入
-          vm.$set(vm.tempProduct, 'imageUrl', response.data.imageUrl);
-          vm.status.fileUploading = false;
-        } else {
-          this.$bus.$emit('messsage:push', response.data.message, 'danger');
-        }
-      })
+    created() {
+        this.getProducts();
     }
-  },
-  created() {
-    this.getProducts();
-  },
 };
 </script>
