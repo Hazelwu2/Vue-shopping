@@ -32,6 +32,7 @@ new Vue({
 
 router.beforeEach((to, from, next) => {
   const api = `${process.env.APIPATH}/api/user/check`;
+  
   if (to.meta.requiresAuth === true) {
     // 假設今天進入的頁面是需要驗證的
     axios.post(api).then(response => {

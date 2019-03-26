@@ -14,7 +14,7 @@ export default {
             messages: [{
                 message: '訊息內容',
                 status: 'danger',
-                timestame: 123
+                timestamp: 123
             }]
         };
     },
