@@ -16,8 +16,8 @@ div
       tr(v-for='(item) in products', :key='item.id')
         td {{item.category}}
         td {{item.title}}
-        td.text-right {{item.origin_price | currency}}$
-        td.text-right {{item.price | currency }}$
+        td {{item.origin_price | currency}}
+        td {{item.price | currency }}
         td
           span.text-success(v-if='item.is_enabled') 啟用
           span(v-else='') 未啟用
@@ -27,12 +27,12 @@ div
 
     nav(aria-label='Page navigation example')
     ul.pagination.justify-content-end
-        li.page-item.disabled
-            a.page-link(href='#', tabindex='-1', aria-disabled='true') <
-        li.page-item
-            //- a.page-link(href='#', v-for="page in products.pagination.total_pages", :key="page", :class="{'active': pagination.current_page === page}") {{page}}
-        li.page-item
-            a.page-link(href='#') >
+        li.page-item(:class="{'disabled': !pagination.has_pre}")
+            a.page-link(href='#', @click.prevent="getProducts(pagination.current_page -1)") <
+        li.page-item(v-for="page in pagination.total_pages", :key="page", :class="{'active': pagination.current_page === page}")
+            a.page-link(href='#', @click.prevent="getProducts(page)") {{page}}
+        li.page-item(:class="{'disabled': !pagination.has_next}")
+            a.page-link(href='#', @click.prevent="getProduct(pagination.current_page + 1)") >
 
   #productModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalLabel', aria-hidden='true', @keyup.esc='hideModal')
     .modal-dialog.modal-lg(role='document')
@@ -113,6 +113,7 @@ export default {
     data() {
         return {
             products: [],
+            pagination: {},
             tempProduct: {},
             isNew: false,
             tempDelProduct: {},
@@ -123,16 +124,17 @@ export default {
         };
     },
     methods: {
-        getProducts() {
+        getProducts(page = 1) {
             const vm = this;
             const api = `${process.env.APIPATH}/api/${
                 process.env.CUSTOMPATH
-            }/products`;
+            }/products?page=${page}`;
             vm.isLoading = true;
             this.$http.get(api).then(response => {
                 console.log(response.data);
-                this.products = response.data.products;
                 vm.isLoading = false;
+                vm.products = response.data.products;
+                vm.pagination = response.data.pagination;
             });
         },
         openModal(isNew, item) {
