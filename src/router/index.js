@@ -6,6 +6,8 @@ import Login from '@/components/pages/Login'
 // Admin 後台
 import Dashboard from '@/components/Dashboard'
 import Products from '@/components/pages/Products'
+import Orders from '@/components/pages/Orders'
+import Coupons from '@/components/pages/Coupons'
 
 Vue.use(Router)
 
@@ -14,12 +16,6 @@ export default new Router({
     {
       path: '*',
       redirect: 'login',
-    },
-    {
-      path: '/',
-      name: 'HelloWorld',
-      component: HelloWorld,
-      meta: { requiresAuth: true}
     },
     {
       path: '/login',
@@ -36,7 +32,19 @@ export default new Router({
           name: 'Products',
           component: Products,
           meta: { requiresAuth: true},
-        }
+        },
+        {
+            path: 'orders', // 模擬訂單
+            name: 'Orders',
+            component: Orders,
+            meta: {requiresAuth: true}
+        },
+        {
+            path: 'coupons', // 模擬訂單
+            name: 'Coupons',
+            component: Coupons,
+            meta: {requiresAuth: true}
+        },
       ]
     },
   ]
