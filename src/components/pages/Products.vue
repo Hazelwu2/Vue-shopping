@@ -25,15 +25,8 @@ div
           button.btn.btn-outline-primary.btn-sm(@click='openModal(false, item)') 編輯
           button.btn.btn-outline-danger.btn-sm(@click='showModal(item)') 刪除
 
-    nav(aria-label='Page navigation example')
-    ul.pagination.justify-content-end
-        li.page-item(:class="{'disabled': !pagination.has_pre}")
-            a.page-link(href='#', @click.prevent="getProducts(pagination.current_page -1)") <
-        li.page-item(v-for="page in pagination.total_pages", :key="page", :class="{'active': pagination.current_page === page}")
-            a.page-link(href='#', @click.prevent="getProducts(page)") {{page}}
-        li.page-item(:class="{'disabled': !pagination.has_next}")
-            a.page-link(href='#', @click.prevent="getProduct(pagination.current_page + 1)") >
-
+  pagination(:pages="pagination", @getPage="getProducts")
+  
   #productModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalLabel', aria-hidden='true', @keyup.esc='hideModal')
     .modal-dialog.modal-lg(role='document')
       .modal-content.border-0
@@ -109,7 +102,11 @@ div
 
 <script>
 import $ from "jquery";
+import pagination from "../Pagination.vue";
 export default {
+    components: {
+        pagination
+    },
     data() {
         return {
             products: [],
