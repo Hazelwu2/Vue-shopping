@@ -23,8 +23,7 @@ nav.col-md-2.d-none.d-md-block.bg-light.sidebar
       span(data-feather='plus-circle')
   ul.nav.flex-column.mb-2
     li.nav-item
-      router-link.nav-link(to='/admin/products')
-        i.far.fa-list-alt
-        |  模擬訂單
+      router-link.nav-link(to='/customer_order')
+        i.far.fa-list-alt 模擬訂單
 
 </template>

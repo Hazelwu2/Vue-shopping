@@ -48,9 +48,9 @@ export default {
         // 自定義名稱 'messsage:push'
         // message: 傳入參數
         // status: bootstrap樣式，預設值為 warning
-        vm.$bus.$on("messsage:push", (message, status = "warning") => {
-            vm.updateMessage(message, status);
-        });
+        // vm.$bus.$on("messsage:push", (message, status = "warning") => {
+        //     vm.updateMessage(message, status);
+        // });
         // 使用方法
         // vm.$bus.$emit('message:push', message, status);
     },
