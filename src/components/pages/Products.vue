@@ -16,14 +16,24 @@ div
       tr(v-for='(item) in products', :key='item.id')
         td {{item.category}}
         td {{item.title}}
-        td.text-right {{item.origin_price}}$
-        td.text-right {{item.price}}$
+        td.text-right {{item.origin_price | currency}}$
+        td.text-right {{item.price | currency }}$
         td
           span.text-success(v-if='item.is_enabled') 啟用
           span(v-else='') 未啟用
         td
           button.btn.btn-outline-primary.btn-sm(@click='openModal(false, item)') 編輯
           button.btn.btn-outline-danger.btn-sm(@click='showModal(item)') 刪除
+
+    nav(aria-label='Page navigation example')
+    ul.pagination.justify-content-end
+        li.page-item.disabled
+            a.page-link(href='#', tabindex='-1', aria-disabled='true') <
+        li.page-item
+            //- a.page-link(href='#', v-for="page in products.pagination.total_pages", :key="page", :class="{'active': pagination.current_page === page}") {{page}}
+        li.page-item
+            a.page-link(href='#') >
+
   #productModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalLabel', aria-hidden='true', @keyup.esc='hideModal')
     .modal-dialog.modal-lg(role='document')
       .modal-content.border-0

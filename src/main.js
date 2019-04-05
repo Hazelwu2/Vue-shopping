@@ -15,12 +15,14 @@ import App from './App'
 import router from './router'
 import './bus';
 import Axios from 'axios';
+import currencyFilter from './filters/currency';
 
 axios.defaults.withCredentials = true;
 
 Vue.config.productionTip = false
 Vue.use(VueAxios, axios);
 Vue.component('loading', Loading);
+Vue.filter('currency', currencyFilter);
 
 /* eslint-disable no-new */
 new Vue({
