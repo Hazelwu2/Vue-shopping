@@ -22,6 +22,37 @@ div
                         button.btn.btn-outline-danger.btn-sm.ml-auto(type='button', @click="addToCart(item.id)")
                             i.fas.fa-spinner.fa-spin(v-if="status.loadingItem === item.id")
                             | 加到購物車
+    table.table
+        thead
+            tr
+            th
+            th 品名
+            th 數量
+            th 單價
+        tbody
+            tr(v-for='item in cart.carts')
+                td.align-middle
+                    button.btn.btn-outline-danger.btn-sm(type='button', @click="removeCartItem(item.id)")
+                        i.far.fa-trash-alt
+                td.align-middle
+                    | {{ item.product.title }}
+                    .text-success(v-if="item.coupon") 已套用優惠券
+                td.align-middle {{ item.qty }}/{{ item.product.unit }}
+                td.align-middle.text-right {{ item.final_total }}
+        tfoot
+            tr
+            td.text-right(colspan='3') 總計
+            td.text-right {{ cart.total }}
+            tr(v-if="cart.final_total !== cart.total")
+                td.text-right.text-success(colspan='3') 折扣價
+                td.text-right.text-success {{ cart.final_total }}
+        .input-group.mb-3.input-group-sm
+            input.form-control(type='text', placeholder='請輸入優惠碼', v-model="coupon_code")
+            .input-group-append
+                button.btn.btn-outline-secondary(type='button', @click="addCouponCode()") 
+                    | 套用優惠碼
+
+
     // 換頁
     pagination(:pages="pagination", @getPage="getProducts")
     // 查看單一產品 Modal
@@ -65,8 +96,10 @@ export default {
             isLoading: false,
             pagination: {},
             status: {
-                loadingItem: '', // 存放產品 id
-            }
+                loadingItem: "" // 存放產品 id
+            },
+            cart: {},
+            coupon_code: ''
         };
     },
     methods: {
@@ -81,10 +114,10 @@ export default {
                 vm.isLoading = false;
                 vm.products = response.data.products;
                 vm.pagination = response.data.pagination;
-                console.log(vm.pagination)
             });
         },
-        getProduct(id) { // 取得單一產品
+        getProduct(id) {
+            // 取得單一產品
             const vm = this;
             const api = `${process.env.APIPATH}/api/${
                 process.env.CUSTOMPATH
@@ -92,9 +125,9 @@ export default {
             vm.status.loadingItem = id;
             this.$http.get(api).then(response => {
                 console.log(response.data);
-                vm.status.loadingItem = '';
+                vm.status.loadingItem = "";
                 vm.product = response.data.product;
-                $('#productModal').modal('show');
+                $("#productModal").modal("show");
             });
         },
         addToCart(id, qty = 1) {
@@ -106,31 +139,55 @@ export default {
             const cart = {
                 product_id: id,
                 qty
-            }
+            };
             vm.status.loadingItem = id;
 
-            this.$http.post(api, {data: cart})
-                .then(response => {
-                    console.log(response.data);
-                    vm.status.loadingItem = '';
-                    vm.getCart();
-                    $('#productModal').modal('hide');
-                });
+            this.$http.post(api, { data: cart }).then(response => {
+                console.log(response.data);
+                vm.status.loadingItem = "";
+                vm.getCart();
+                $("#productModal").modal("hide");
+            });
         },
-        getCart(){
+        getCart() {
             const vm = this;
             const api = `${process.env.APIPATH}/api/${
                 process.env.CUSTOMPATH
             }/cart`;
             vm.isLoading = true;
             this.$http.get(api).then(response => {
-                console.log(response.data);
                 vm.isLoading = false;
-                // vm.products = response.data.products;
-                // vm.pagination = response.data.pagination;
-                // console.log(vm.pagination)
+                console.log(response);
+                vm.cart = response.data.data;
+            });
+        },
+        removeCartItem(id){
+            const vm = this;
+            const api = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/cart/${id}`;
+            vm.isLoading = true;
+            this.$http.delete(api).then(response => {
+                this.getCart();
+                vm.isLoading = false;
+            });
+        },
+        addCouponCode(){
+            const vm = this;
+            const api = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/coupon`;
+            const coupon = {
+                code: vm.coupon_code
+            }
+            vm.isLoading = true;
+            this.$http.post(api, {data: coupon}).then(response => {
+                console.log(response);
+                this.getCart();
+                vm.isLoading = false;
             });
         }
+    
     },
     created() {
         this.getProducts();
