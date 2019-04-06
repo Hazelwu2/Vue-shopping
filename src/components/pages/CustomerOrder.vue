@@ -19,9 +19,10 @@ div
                         button.btn.btn-outline-secondary.btn-sm(type='button', @click="getProduct(item.id)")
                             i.fas.fa-spinner.fa-spin(v-if="status.loadingItem === item.id")
                             | 查看更多
-                        button.btn.btn-outline-danger.btn-sm.ml-auto(type='button')
+                        button.btn.btn-outline-danger.btn-sm.ml-auto(type='button', @click="addToCart(item.id)")
                             i.fas.fa-spinner.fa-spin(v-if="status.loadingItem === item.id")
                             | 加到購物車
+    // 換頁
     pagination(:pages="pagination", @getPage="getProducts")
     // 查看單一產品 Modal
     #productModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalLabel', aria-hidden='true')
@@ -41,12 +42,12 @@ div
                         del.h6(v-if="product.price") 原價 {{product.origin_price }} 元
                         .h4(v-if="product.price") 現在只要 {{product.price }} 元
                     select.form-control.mt-3(v-model="product.num")
-                        option(value="1") 選購 1 件
+                        option(:value="num", v-for="num in 10", :key="num") 選購 {{num}} {{product.unit}}
                 .modal-footer
                     .text-muted.text-nowrap.mr-3
                         | 小計
                         strong {{product.num * product.price }} 元
-                    button.btn.btn-primary(type='button') 加到購物車
+                    button.btn.btn-primary(type='button', @click="addToCart(product.id, product.num)") 加到購物車
 
 </template>
 
@@ -95,10 +96,45 @@ export default {
                 vm.product = response.data.product;
                 $('#productModal').modal('show');
             });
+        },
+        addToCart(id, qty = 1) {
+            // id 商品id , qty 商品數量
+            const vm = this;
+            const api = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/cart`;
+            const cart = {
+                product_id: id,
+                qty
+            }
+            vm.status.loadingItem = id;
+
+            this.$http.post(api, {data: cart})
+                .then(response => {
+                    console.log(response.data);
+                    vm.status.loadingItem = '';
+                    vm.getCart();
+                    $('#productModal').modal('hide');
+                });
+        },
+        getCart(){
+            const vm = this;
+            const api = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/cart`;
+            vm.isLoading = true;
+            this.$http.get(api).then(response => {
+                console.log(response.data);
+                vm.isLoading = false;
+                // vm.products = response.data.products;
+                // vm.pagination = response.data.pagination;
+                // console.log(vm.pagination)
+            });
         }
     },
     created() {
         this.getProducts();
+        this.getCart();
     }
 };
 </script>
