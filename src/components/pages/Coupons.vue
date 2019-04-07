@@ -20,6 +20,8 @@ div
                 td
                     button.btn.btn-outline-primary.btn-sm(@click="openModal(false)") 編輯
                     button.btn.btn-outline-danger.btn-sm 刪除
+
+
     // Modal
     #couponsModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='couponsModalLabel', aria-hidden='true')
         .modal-dialog(role='document')
@@ -75,6 +77,7 @@ export default {
             },
             due_date: new Date(),
             isNew: false,
+            
         };
     },
     methods: {

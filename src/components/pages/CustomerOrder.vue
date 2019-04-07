@@ -52,6 +52,30 @@ div
                 button.btn.btn-outline-secondary(type='button', @click="addCouponCode()") 
                     | 套用優惠碼
 
+    // 建立訂單
+    .my-5.row.justify-content-center
+        form.col-md-6(@submit.prevent="createOrder()")
+            .form-group
+                label(for='useremail') Email
+                input#useremail.form-control(type='email', name='email', v-model='form.user.email', placeholder='請輸入 Email', v-validate="'required|email'")
+                span.text-danger(v-if="errors.has('email')") {{ errors.first('email') }}
+
+            .form-group
+                label(for='username') 收件人姓名
+                input#username.form-control(type='text', name='name', v-model='form.user.name', placeholder='輸入姓名', v-validate="'required'", :class="{'is-invalid': errors.has('name')}")
+                span.text-danger(v-if="errors.has('name')") 姓名為必填
+            .form-group
+                label(for='usertel') 收件人電話
+                input#usertel.form-control(type='tel', v-model='form.user.tel', placeholder='請輸入電話')
+            .form-group
+                label(for='useraddress') 收件人地址
+                input#useraddress.form-control(type='text', name='address', v-model='form.user.address', placeholder='請輸入地址')
+                span.text-danger 地址欄位不得留空
+            .form-group
+                label(for='comment') 留言
+                textarea#comment.form-control(name='', cols='30', rows='10', v-model='form.message')
+            .text-right
+                button.btn.btn-danger(@click="createOrder()") 送出訂單
 
     // 換頁
     pagination(:pages="pagination", @getPage="getProducts")
@@ -85,6 +109,7 @@ div
 <script>
 import $ from "jquery";
 import pagination from "../Pagination.vue";
+
 export default {
     components: {
         pagination
@@ -99,7 +124,16 @@ export default {
                 loadingItem: "" // 存放產品 id
             },
             cart: {},
-            coupon_code: ''
+            coupon_code: "",
+            form: {
+                user: {
+                    name: "",
+                    email: "",
+                    tel: "",
+                    address: ""
+                },
+                message: ""
+            }
         };
     },
     methods: {
@@ -161,7 +195,7 @@ export default {
                 vm.cart = response.data.data;
             });
         },
-        removeCartItem(id){
+        removeCartItem(id) {
             const vm = this;
             const api = `${process.env.APIPATH}/api/${
                 process.env.CUSTOMPATH
@@ -172,22 +206,40 @@ export default {
                 vm.isLoading = false;
             });
         },
-        addCouponCode(){
+        addCouponCode() {
             const vm = this;
             const api = `${process.env.APIPATH}/api/${
                 process.env.CUSTOMPATH
             }/coupon`;
             const coupon = {
                 code: vm.coupon_code
-            }
+            };
             vm.isLoading = true;
-            this.$http.post(api, {data: coupon}).then(response => {
+            this.$http.post(api, { data: coupon }).then(response => {
                 console.log(response);
                 this.getCart();
                 vm.isLoading = false;
             });
+        },
+        createOrder() {
+            const vm = this;
+            const api = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/order`;
+            const order = vm.form;
+            vm.isLoading = true;
+            this.$validator.validate().then(valid => {
+                if (valid) {
+                    this.$http.post(api, { data: order }).then(response => {
+                        console.log("訂單已建立", response);
+                        vm.isLoading = false;
+                    });
+                } else {
+                    console.log('欄位不完整');
+                    vm.isLoading = false;
+                }
+            });
         }
-    
     },
     created() {
         this.getProducts();

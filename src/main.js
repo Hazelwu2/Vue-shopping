@@ -14,8 +14,14 @@ import 'bootstrap';
 import App from './App'
 import router from './router'
 import './bus';
-import Axios from 'axios';
+import VeeValidate from 'vee-validate';
 import currencyFilter from './filters/currency';
+import zh_TW from 'vee-validate/dist/locale/zh_TW';
+
+import VueI18n from 'vue-i18n';
+// 載入表單驗證中文語系
+Vue.use(VueI18n);
+
 
 axios.defaults.withCredentials = true;
 
@@ -24,8 +30,21 @@ Vue.use(VueAxios, axios);
 Vue.component('loading', Loading);
 Vue.filter('currency', currencyFilter);
 
+const i18n = new VueI18n({
+    locale: 'zh_TW'
+});
+
+Vue.use(VeeValidate, {
+    i18n,
+    dictionary: {
+        zh_TW
+    },
+    events: 'input|blur'
+});
+
 /* eslint-disable no-new */
 new Vue({
+  i18n,
   el: '#app',
   router,
   components: { App },
