@@ -66,11 +66,12 @@ div
                 span.text-danger(v-if="errors.has('name')") 姓名為必填
             .form-group
                 label(for='usertel') 收件人電話
-                input#usertel.form-control(type='tel', v-model='form.user.tel', placeholder='請輸入電話')
+                input#usertel.form-control(name='tel', type='tel', v-model='form.user.tel', placeholder='請輸入電話', v-validate="'required'")
+                span.text-danger(v-if="errors.has('tel')") 手機為必填，取件用
             .form-group
                 label(for='useraddress') 收件人地址
-                input#useraddress.form-control(type='text', name='address', v-model='form.user.address', placeholder='請輸入地址')
-                span.text-danger 地址欄位不得留空
+                input#useraddress.form-control(type='text', name='address', v-model='form.user.address', placeholder='請輸入地址', v-validate="'required'")
+                span.text-danger(v-if="errors.has('address')") 地址為必填，司機不知道地址不知道怎麼送過去捏
             .form-group
                 label(for='comment') 留言
                 textarea#comment.form-control(name='', cols='30', rows='10', v-model='form.message')
