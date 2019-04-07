@@ -12,14 +12,16 @@ div
             th 是否啟用
             th 編輯
         tbody
-            tr(v-for='(item) in coupons', :key="item")
+            tr(v-for='(item) in coupons', :key="item.id")
                 td {{item.title}}
                 td {{item.percent}} %
                 td {{item.due_date}}
-                td {{item.is_enabled}}
+                td 
+                    span.text-success(v-if="item.is_enabled === 1") 啟用 
+                    span.text-muted(v-else) 未啟用 
                 td
-                    button.btn.btn-outline-primary.btn-sm(@click="openModal(false)") 編輯
-                    button.btn.btn-outline-danger.btn-sm 刪除
+                    button.btn.btn-outline-primary.btn-sm(@click="openModal(false, item)") 編輯
+                    button.btn.btn-outline-danger.btn-sm(@click="delCoupon(item)") 刪除
 
 
     // Modal
@@ -49,7 +51,7 @@ div
                         label.form-check-label(for='is_enabled') 是否啟用
                 .modal-footer
                     button.btn.btn-secondary(type='button', data-dismiss='modal') 關閉
-                    button.btn.btn-primary(type='button', @click="updateCoupon") 更新優惠券
+                    button.btn.btn-primary(type='button', @click="updateCoupon()") 更新優惠券
 
     // pagination(:pages="pagination", @getPage="getCoupons")
 </template>
@@ -76,9 +78,15 @@ export default {
                 code: ""
             },
             due_date: new Date(),
-            isNew: false,
-            
+            isNew: false
         };
+    },
+    watch: {
+        due_date() {
+            const vm = this;
+            const timestamp = Math.floor(new Date(vm.due_date) / 1000);
+            vm.tempCoupon.due_date = timestamp;
+        }
     },
     methods: {
         getCoupons(page = 1) {
@@ -91,53 +99,60 @@ export default {
 
             this.$http.get(api).then(response => {
                 console.log("getCoupons");
-                console.log(response);
+                console.log(response.data);
                 vm.isLoading = false;
                 vm.coupons = response.data.coupons;
                 vm.pagination = response.data.pagination;
             });
         },
         openModal(isNew, item) {
-            if (isNew) {
-                this.tempCoupon = {};
-                this.isNew = true;
-            } else {
-                this.tempCoupon = Object.assign({}, item);
-                this.isNew = false;
-            }
+            const vm = this;
             $("#couponsModal").modal("show");
+            vm.isNew = isNew;
+            if (vm.isNew) {
+                vm.tempCoupon = {};
+            } else {
+                vm.tempCoupon = Object.assign({}, item);
+                const dateAndTime = new Date(vm.tempCoupon.due_date * 1000)
+                    .toISOString()
+                    .split("T");
+                vm.due_date = dateAndTime[0];
+            }
         },
         updateCoupon() {
             const vm = this;
             if (vm.isNew) {
                 const url = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/coupon`;
-                // /api/:api_path/admin/coupon
-                console.log(vm.tempCoupons);
-                vm.isLoading = true;
-                this.$http
-                    .post(url, { data: vm.tempCoupons })
-                    .then(response => {
-                        console.log("updateCoupon");
-                        console.log(response);
-
-                        $("#couponsModal").modal("hide");
-                        this.getCoupons();
-                        vm.isLoading = false;
-                    });
-            } else {
-                const url = `${process.env.APIPATH}/api/${
-                    process.env.CUSTOMPATH
-                }/admin/coupon/${vm.tempCoupon.id}`;
-                vm.due_date = new Date(vm.tempCoupon.due_date * 1000);
-                console.log("vm.due_date", vm.due_date);
-                this.http.put(url, { data: vm.tempCoupon }).then(response => {
-                    console.log(response);
-                    $("#couponsModal").modal("hide");
-                    this.getCoupons();
-                    vm.isLoading = false;
+                this.$http.post(url, { data: vm.tempCoupon }).then((response) => {
+                console.log(response, vm.tempCoupon);
+                $('#couponsModal').modal('hide');
+                this.getCoupons();
                 });
-                // /api/:api_path/admin/coupon/:id
+            } else {
+                const url = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/coupon/${vm.tempCoupon.id}`;
+                vm.due_date = new Date(vm.tempCoupon.due_date * 1000);
+                this.$http.put(url, { data: vm.tempCoupon }).then((response) => {
+                console.log(response);
+                $('#couponsModal').modal('hide');
+                this.getCoupons();
+                
+                });
             }
+        },
+        delCoupon(coupon) {
+            console.log('delCoupon ============', coupon)
+            const vm = this;
+            const url = `${process.env.APIPATH}/api/${
+                process.env.CUSTOMPATH
+            }/coupon/${coupon.id}`;
+            // /api/:api_path/admin/coupon/:coupon_id
+            vm.isLoading = true;
+            console.log(url);
+            this.$http.delete(url).then(res => {
+                console.log("delCoupon", res.data);
+                this.getCoupons();
+                vm.isLoading = false;
+            });
         }
     },
     created() {

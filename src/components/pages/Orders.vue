@@ -11,12 +11,20 @@ div
             th 應付金額
             th 是否付款
         tbody
-            tr(v-for="order in orders", :key="order")
-                td {{order.paid_date}}
-                td {{order.user.email}}
-                td {{order.products}}
-                td {{order.is_paid}}
-    // pagination(:pages="pagination", @getPage="getOrders")
+            tr(v-for="(item, key) in sortOrder", :key="key", v-if="orders.length", :class="{'text-secondary': !item.is_paid}")
+                td {{item.create_at | date}}
+                td 
+                    span(v-if="item.user", v-text="item.user.email") {{item.user.email}}
+                td
+                    ul.list-unstyled
+                        li(v-for="(product, i) in item.products", :key="i")
+                            | {{product.product.title}} 數量：{{product.qty}}
+                            | {{product.product.unit}}
+                td {{item.total | currency }}
+                td 
+                    strong.text-success(v-if="item.is_paid") 已付款
+                    span.text-muted(v-else) 尚未付款
+    pagination(:pages="pagination", @getPage="getOrders")
 </template>
 
 <script>
@@ -40,19 +48,32 @@ export default {
         getOrders(page = 1){
             const vm = this;
             const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/orders?page=${page}`;
-            // /api/:api_path/admin/orders?page=:page
             vm.isLoading = true;
 
             this.$http
-            .get(api)
-            .then(response => {
-                console.log('getOrders');
-                console.log(response);
-                vm.isLoading = false;
-                vm.orders = response.data.orders;
-                vm.pagination = response.data.pagination;
-                vm.messages = {};
-            })
+                .get(api)
+                .then(response => {
+                    console.log('getOrders', response);
+                    vm.orders = response.data.orders;
+                    vm.pagination = response.data.pagination;
+                    vm.isLoading = false;
+                })
+        }
+    },
+    computed: {
+        sortOrder(){
+            const vm = this;
+            let newOrder = [];
+            if (vm.orders.length) {
+                newOrder = vm.orders.sort((a, b) => {
+                    const aIsPaid = a.is_paid ? 1 : 0;
+                    const bIsPaid = b.is_paid ? 1 : 0;
+                    console.log('aIsPaid', aIsPaid);
+                    console.log('bIsPaid', bIsPaid);
+                    return bIsPaid - aIsPaid;
+                });
+            }
+            return newOrder;
         }
     },
     created(){
